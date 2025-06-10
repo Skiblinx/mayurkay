@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, User, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, Heart, User, ShoppingBag, Menu } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { Button } from '../ui/button';
@@ -10,17 +10,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../ui/sheet';
+import { useState } from 'react';
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
   const { getItemCount } = useCartStore();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
   
   const itemCount = getItemCount();
 
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const navigationItems = [
+    { to: '/', label: 'Home' },
+    { to: '/products', label: 'All Bags' },
+    { to: '/products?category=tote', label: 'Totes' },
+    { to: '/products?category=handbag', label: 'Handbags' },
+    { to: '/products?category=shoulder', label: 'Shoulder Bags' },
+  ];
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setIsOpen(false);
   };
 
   return (
@@ -32,22 +54,17 @@ const Navbar = () => {
             <span>LuxeBags</span>
           </Link>
           
+          {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link to="/products" className="text-gray-700 hover:text-primary transition-colors">
-              All Bags
-            </Link>
-            <Link to="/products?category=tote" className="text-gray-700 hover:text-primary transition-colors">
-              Totes
-            </Link>
-            <Link to="/products?category=handbag" className="text-gray-700 hover:text-primary transition-colors">
-              Handbags
-            </Link>
-            <Link to="/products?category=shoulder" className="text-gray-700 hover:text-primary transition-colors">
-              Shoulder Bags
-            </Link>
+            {navigationItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="text-gray-700 hover:text-primary transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -64,36 +81,123 @@ const Navbar = () => {
               )}
             </Link>
 
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="w-5 h-5" />
-                    <span className="hidden md:block">{user?.name}</span>
+            {/* Desktop Auth */}
+            <div className="hidden md:flex">
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                      <User className="w-5 h-5" />
+                      <span>{user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-white">
+                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/orders')}>
+                      Orders
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="flex space-x-2">
+                  <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
+                    Login
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white">
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/orders')}>
-                    Orders
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout}>
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex space-x-2">
-                <Button variant="ghost" size="sm" onClick={() => navigate('/login')}>
-                  Login
-                </Button>
-                <Button size="sm" onClick={() => navigate('/signup')}>
-                  Sign Up
-                </Button>
-              </div>
-            )}
+                  <Button size="sm" onClick={() => navigate('/signup')}>
+                    Sign Up
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="md:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Menu className="w-6 h-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center space-x-2">
+                      <ShoppingBag className="w-6 h-6" />
+                      <span>LuxeBags</span>
+                    </SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="mt-6 space-y-4">
+                    {/* Navigation Links */}
+                    <div className="space-y-2">
+                      {navigationItems.map((item) => (
+                        <button
+                          key={item.to}
+                          onClick={() => handleNavigation(item.to)}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Divider */}
+                    <div className="border-t border-gray-200 my-4"></div>
+
+                    {/* Auth Section */}
+                    {isAuthenticated ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 px-4 py-2 text-gray-700">
+                          <User className="w-5 h-5" />
+                          <span>{user?.name}</span>
+                        </div>
+                        <button
+                          onClick={() => handleNavigation('/profile')}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          Profile
+                        </button>
+                        <button
+                          onClick={() => handleNavigation('/orders')}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          Orders
+                        </button>
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setIsOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => handleNavigation('/login')}
+                        >
+                          Login
+                        </Button>
+                        <Button
+                          className="w-full justify-start"
+                          onClick={() => handleNavigation('/signup')}
+                        >
+                          Sign Up
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>

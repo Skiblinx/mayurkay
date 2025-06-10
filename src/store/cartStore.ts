@@ -25,6 +25,7 @@ interface CartState {
   clearCart: () => void;
   getItemCount: () => number;
   getTotal: () => number;
+  getTotalPrice: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -72,6 +73,9 @@ export const useCartStore = create<CartState>()(
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
       getTotal: () => {
+        return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      },
+      getTotalPrice: () => {
         return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
       },
     }),
