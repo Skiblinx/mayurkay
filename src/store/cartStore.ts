@@ -10,6 +10,7 @@ export interface Product {
   description: string;
   category: string;
   rating: number;
+  designer?: string;
 }
 
 interface CartItem extends Product {
@@ -22,8 +23,8 @@ interface CartState {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  getTotalPrice: () => number;
   getItemCount: () => number;
+  getTotal: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -43,7 +44,9 @@ export const useCartStore = create<CartState>()(
             )
           });
         } else {
-          set({ items: [...items, { ...product, quantity: 1 }] });
+          set({
+            items: [...items, { ...product, quantity: 1 }]
+          });
         }
       },
       removeFromCart: (productId) => {
@@ -54,21 +57,22 @@ export const useCartStore = create<CartState>()(
       updateQuantity: (productId, quantity) => {
         if (quantity <= 0) {
           get().removeFromCart(productId);
-          return;
+        } else {
+          set({
+            items: get().items.map(item =>
+              item.id === productId
+                ? { ...item, quantity }
+                : item
+            )
+          });
         }
-        
-        set({
-          items: get().items.map(item =>
-            item.id === productId ? { ...item, quantity } : item
-          )
-        });
       },
       clearCart: () => set({ items: [] }),
-      getTotalPrice: () => {
-        return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
-      },
       getItemCount: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
+      },
+      getTotal: () => {
+        return get().items.reduce((total, item) => total + (item.price * item.quantity), 0);
       },
     }),
     {

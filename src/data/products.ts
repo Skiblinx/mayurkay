@@ -4,64 +4,124 @@ import { Product } from '../store/cartStore';
 export const products: Product[] = [
   {
     id: '1',
-    name: 'Premium Wireless Headphones',
-    price: 299.99,
+    name: 'Louis Vuitton Neverfull MM',
+    price: 1690.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'High-quality wireless headphones with noise cancellation and premium sound quality.',
-    category: 'electronics',
-    rating: 4.8
+    description: 'Iconic tote bag in Monogram canvas with leather trim. Perfect for everyday use.',
+    category: 'tote',
+    rating: 4.9,
+    designer: 'Louis Vuitton'
   },
   {
     id: '2',
-    name: 'Smart Fitness Watch',
-    price: 199.99,
+    name: 'Hermès Birkin 30',
+    price: 12500.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'Advanced fitness tracking with heart rate monitoring and GPS.',
-    category: 'electronics',
-    rating: 4.6
+    description: 'Legendary luxury handbag crafted in premium Togo leather.',
+    category: 'handbag',
+    rating: 5.0,
+    designer: 'Hermès'
   },
   {
     id: '3',
-    name: 'Organic Cotton T-Shirt',
-    price: 29.99,
+    name: 'Chanel Classic Flap',
+    price: 8800.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'Comfortable and sustainable organic cotton t-shirt.',
-    category: 'clothing',
-    rating: 4.4
+    description: 'Timeless quilted leather bag with signature chain strap.',
+    category: 'shoulder',
+    rating: 4.8,
+    designer: 'Chanel'
   },
   {
     id: '4',
-    name: 'Professional Camera Lens',
-    price: 899.99,
+    name: 'Gucci GG Marmont Backpack',
+    price: 1390.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'High-performance camera lens for professional photography.',
-    category: 'electronics',
-    rating: 4.9
+    description: 'Stylish quilted leather backpack with gold-toned hardware.',
+    category: 'backpack',
+    rating: 4.7,
+    designer: 'Gucci'
   },
   {
     id: '5',
-    name: 'Luxury Leather Handbag',
-    price: 249.99,
+    name: 'Prada Re-Edition 2005',
+    price: 1350.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'Elegant leather handbag crafted with premium materials.',
-    category: 'accessories',
-    rating: 4.7
+    description: 'Iconic nylon shoulder bag with signature triangular logo.',
+    category: 'shoulder',
+    rating: 4.6,
+    designer: 'Prada'
   },
   {
     id: '6',
-    name: 'Gaming Mechanical Keyboard',
-    price: 159.99,
+    name: 'Dior Lady Dior Medium',
+    price: 5000.00,
     image: '/placeholder.svg?height=300&width=300',
-    description: 'High-performance mechanical keyboard with RGB lighting.',
-    category: 'electronics',
-    rating: 4.5
+    description: 'Elegant cannage quilted leather handbag with charm.',
+    category: 'handbag',
+    rating: 4.9,
+    designer: 'Dior'
+  },
+  {
+    id: '7',
+    name: 'Bottega Veneta Cassette',
+    price: 2950.00,
+    image: '/placeholder.svg?height=300&width=300',
+    description: 'Distinctive intrecciato woven leather crossbody bag.',
+    category: 'crossbody',
+    rating: 4.8,
+    designer: 'Bottega Veneta'
+  },
+  {
+    id: '8',
+    name: 'Balenciaga City Bag',
+    price: 1850.00,
+    image: '/placeholder.svg?height=300&width=300',
+    description: 'Edgy distressed leather handbag with signature studs.',
+    category: 'handbag',
+    rating: 4.5,
+    designer: 'Balenciaga'
+  },
+  {
+    id: '9',
+    name: 'YSL Loulou Puffer',
+    price: 2290.00,
+    image: '/placeholder.svg?height=300&width=300',
+    description: 'Quilted puffer shoulder bag in luxurious lambskin.',
+    category: 'shoulder',
+    rating: 4.7,
+    designer: 'Saint Laurent'
+  },
+  {
+    id: '10',
+    name: 'Celine Luggage Micro',
+    price: 3100.00,
+    image: '/placeholder.svg?height=300&width=300',
+    description: 'Distinctive structured tote with signature smile design.',
+    category: 'tote',
+    rating: 4.6,
+    designer: 'Celine'
   }
 ];
 
 export const categories = [
-  'electronics',
-  'clothing',
-  'accessories',
-  'home',
-  'sports'
+  'tote',
+  'handbag',
+  'shoulder',
+  'crossbody',
+  'backpack',
+  'clutch'
+];
+
+export const designers = [
+  'Louis Vuitton',
+  'Hermès',
+  'Chanel',
+  'Gucci',
+  'Prada',
+  'Dior',
+  'Bottega Veneta',
+  'Balenciaga',
+  'Saint Laurent',
+  'Celine'
 ];

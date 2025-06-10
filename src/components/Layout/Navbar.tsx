@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, User } from 'lucide-react';
+import { ShoppingCart, Heart, User, ShoppingBag } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { Button } from '../ui/button';
@@ -27,22 +27,26 @@ const Navbar = () => {
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-primary">
-            EcoShop
+          <Link to="/" className="flex items-center text-2xl font-bold text-primary space-x-2">
+            <ShoppingBag className="w-6 h-6" />
+            <span>LuxeBags</span>
           </Link>
           
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="text-gray-700 hover:text-primary transition-colors">
               Home
             </Link>
-            <Link to="/category/electronics" className="text-gray-700 hover:text-primary transition-colors">
-              Electronics
+            <Link to="/products" className="text-gray-700 hover:text-primary transition-colors">
+              All Bags
             </Link>
-            <Link to="/category/clothing" className="text-gray-700 hover:text-primary transition-colors">
-              Clothing
+            <Link to="/products?category=tote" className="text-gray-700 hover:text-primary transition-colors">
+              Totes
             </Link>
-            <Link to="/category/accessories" className="text-gray-700 hover:text-primary transition-colors">
-              Accessories
+            <Link to="/products?category=handbag" className="text-gray-700 hover:text-primary transition-colors">
+              Handbags
+            </Link>
+            <Link to="/products?category=shoulder" className="text-gray-700 hover:text-primary transition-colors">
+              Shoulder Bags
             </Link>
           </div>
 

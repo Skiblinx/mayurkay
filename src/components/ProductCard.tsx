@@ -63,6 +63,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
       </div>
       
       <div className="p-4">
+        {product.designer && (
+          <p className="text-xs font-medium text-primary mb-1 uppercase tracking-wide">
+            {product.designer}
+          </p>
+        )}
         <Link to={`/product/${product.id}`}>
           <h3 className="font-semibold text-gray-800 mb-2 hover:text-primary transition-colors">
             {product.name}
@@ -87,7 +92,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-primary">${product.price}</span>
+          <span className="text-xl font-bold text-primary">${product.price.toLocaleString()}</span>
           <Button 
             onClick={handleAddToCart}
             size="sm"
