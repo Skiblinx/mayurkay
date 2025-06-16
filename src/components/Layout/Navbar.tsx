@@ -51,7 +51,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center text-2xl font-bold text-primary space-x-2">
             <ShoppingBag className="w-6 h-6" />
-            <span>LuxeBags</span>
+            <span>MayurKay</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -127,7 +127,7 @@ const Navbar = () => {
                   <SheetHeader>
                     <SheetTitle className="flex items-center space-x-2">
                       <ShoppingBag className="w-6 h-6" />
-                      <span>LuxeBags</span>
+                      <span>MayurKay</span>
                     </SheetTitle>
                   </SheetHeader>
                   
