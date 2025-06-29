@@ -43,7 +43,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 group border border-gray-200 dark:border-gray-700">
       <div className="relative">
         <Link to={`/product/${product.id}`}>
           <img
@@ -54,26 +54,21 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </Link>
         <button
           onClick={handleWishlistToggle}
-          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
+          className="absolute top-2 right-2 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 transition-colors"
         >
           <Heart 
-            className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+            className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-400'}`} 
           />
         </button>
       </div>
       
       <div className="p-4">
-        {product.designer && (
-          <p className="text-xs font-medium text-primary mb-1 uppercase tracking-wide">
-            {product.designer}
-          </p>
-        )}
         <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-gray-800 mb-2 hover:text-primary transition-colors">
+          <h3 className="font-semibold text-gray-800 dark:text-white mb-2 hover:text-primary dark:hover:text-primary-foreground transition-colors">
             {product.name}
           </h3>
         </Link>
-        <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+        <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">
           {product.description}
         </p>
         <div className="flex items-center mb-2">
@@ -82,17 +77,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <span
                 key={i}
                 className={`text-sm ${
-                  i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'
+                  i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
                 }`}
               >
                 ★
               </span>
             ))}
-            <span className="text-sm text-gray-600 ml-1">({product.rating})</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">({product.rating})</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-primary">${product.price.toLocaleString()}</span>
+          <span className="text-xl font-bold text-primary dark:text-primary-foreground">₦{product.price.toLocaleString()}</span>
           <Button 
             onClick={handleAddToCart}
             size="sm"
