@@ -1,23 +1,23 @@
 
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroCarousel from '../components/HeroCarousel';
 import ProductCard from '../components/ProductCard';
 import CategoryCard from '../components/CategoryCard';
 import CategoryCardSkeleton from '../components/CategoryCardSkeleton';
-import { products, categories } from '../data/products';
 import { Button } from '../components/ui/button';
 import { ShoppingBag } from 'lucide-react';
+import { useProducts, useCategories, useSiteContent } from '@/hooks/useSupabaseData';
 
 const HomePage = () => {
-  const [loading, setLoading] = useState(true);
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: siteContent = [] } = useSiteContent('home');
+  
   const featuredProducts = products.slice(0, 4);
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  // Get site content
+  const welcomeContent = siteContent.find(content => content.section === 'welcome');
+  const featuredContent = siteContent.find(content => content.section === 'featured');
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -31,13 +31,20 @@ const HomePage = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {loading ? (
+            {categoriesLoading ? (
               Array.from({ length: 6 }, (_, i) => (
                 <CategoryCardSkeleton key={i} />
               ))
             ) : (
               categories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
+                <CategoryCard 
+                  key={category.id} 
+                  category={{
+                    id: category.slug,
+                    name: category.name,
+                    image: category.image || '/placeholder.svg?height=400&width=400'
+                  }} 
+                />
               ))
             )}
           </div>
@@ -47,15 +54,42 @@ const HomePage = () => {
       <section className="py-16 bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Featured Products</h2>
-            <p className="text-lg text-gray-600 dark:text-gray-300">Discover our most exclusive fashion pieces</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              {featuredContent?.content_data?.heading || 'Featured Products'}
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              {featuredContent?.content_data?.description || 'Discover our most exclusive fashion pieces'}
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {productsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="bg-white rounded-lg shadow-md p-4 animate-pulse">
+                  <div className="w-full h-64 bg-gray-300 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={{
+                    id: product.id,
+                    name: product.name,
+                    price: product.price / 100, // Convert from cents
+                    image: product.images?.[0] || '/placeholder.svg?height=400&width=400',
+                    description: product.description || '',
+                    category: product.categories?.slug || 'general',
+                    rating: product.rating || 0,
+                  }} 
+                />
+              ))}
+            </div>
+          )}
           
           <div className="text-center mt-12">
             <Link to="/products">

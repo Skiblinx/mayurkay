@@ -1,23 +1,26 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { products, categories } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
+import { useProducts, useCategories, useProductsByCategory } from '@/hooks/useSupabaseData';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-  const [loading, setLoading] = useState(true);
+  
+  const { data: allProducts = [], isLoading: allProductsLoading } = useProducts();
+  const { data: categories = [] } = useCategories();
+  const { data: categoryProducts = [], isLoading: categoryProductsLoading } = useProductsByCategory(
+    selectedCategory !== 'all' ? selectedCategory : ''
+  );
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const isLoading = selectedCategory === 'all' ? allProductsLoading : categoryProductsLoading;
+  const products = selectedCategory === 'all' ? allProducts : categoryProducts;
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -27,10 +30,9 @@ const ProductsPage = () => {
   }, [searchParams]);
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    if (!searchTerm) return true;
+    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
   return (
@@ -57,7 +59,7 @@ const ProductsPage = () => {
             <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
+                <SelectItem key={category.id} value={category.slug}>
                   {category.name}
                 </SelectItem>
               ))}
@@ -66,7 +68,7 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }, (_, i) => (
             <ProductCardSkeleton key={i} />
@@ -75,7 +77,18 @@ const ProductsPage = () => {
       ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard 
+              key={product.id} 
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price / 100, // Convert from cents
+                image: product.images?.[0] || '/placeholder.svg?height=400&width=400',
+                description: product.description || '',
+                category: product.categories?.slug || 'general',
+                rating: product.rating || 0,
+              }} 
+            />
           ))}
         </div>
       ) : (
