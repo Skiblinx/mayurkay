@@ -15,9 +15,17 @@ const HomePage = () => {
   
   const featuredProducts = products.slice(0, 4);
 
-  // Get site content
+  // Get site content with proper type checking
   const welcomeContent = siteContent.find(content => content.section === 'welcome');
   const featuredContent = siteContent.find(content => content.section === 'featured');
+
+  // Safely access nested JSON properties
+  const getContentValue = (content: any, key: string, fallback: string) => {
+    if (!content?.content_data || typeof content.content_data !== 'object') {
+      return fallback;
+    }
+    return (content.content_data as any)?.[key] || fallback;
+  };
 
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -55,10 +63,10 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              {featuredContent?.content_data?.heading || 'Featured Products'}
+              {getContentValue(featuredContent, 'heading', 'Featured Products')}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              {featuredContent?.content_data?.description || 'Discover our most exclusive fashion pieces'}
+              {getContentValue(featuredContent, 'description', 'Discover our most exclusive fashion pieces')}
             </p>
           </div>
           
