@@ -13,6 +13,10 @@ import CheckoutPage from "./pages/CheckoutPage";
 import WishlistPage from "./pages/WishlistPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminProductFormPage from "./pages/AdminProductFormPage";
+import AdminCategoriesPage from "./pages/AdminCategoriesPage";
+import AdminCategoryFormPage from "./pages/AdminCategoryFormPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +39,12 @@ const App = () => (
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/products/new" element={<AdminProductFormPage />} />
+          <Route path="/admin/products/edit/:id" element={<AdminProductFormPage />} />
+          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/categories/new" element={<AdminCategoryFormPage />} />
+          <Route path="/admin/categories/edit/:id" element={<AdminCategoryFormPage />} />
           
           {/* Catch all */}
           <Route path="*" element={<Layout><NotFound /></Layout>} />
