@@ -21,8 +21,19 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate('/admin/login');
+    console.log('AdminDashboard auth state:', { user: !!user, isAdmin, loading });
+    
+    // Only redirect if we're not loading and either no user or not admin
+    if (!loading) {
+      if (!user) {
+        console.log('No user found, redirecting to login');
+        navigate('/admin/login');
+      } else if (!isAdmin) {
+        console.log('User is not admin, redirecting to login');
+        navigate('/admin/login');
+      } else {
+        console.log('User is authenticated admin, staying on dashboard');
+      }
     }
   }, [user, isAdmin, loading, navigate]);
 
@@ -42,8 +53,16 @@ const AdminDashboard = () => {
     );
   }
 
+  // Don't render anything if still checking auth or if user is not authenticated/admin
   if (!user || !isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying admin access...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
