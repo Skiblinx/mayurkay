@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
-import { useAdminProducts, useDeleteProduct } from '@/hooks/useSupabaseData';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminProducts, useDeleteProduct } from '@/hooks/useApiData';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -111,8 +111,8 @@ const AdminProductsPage = () => {
                       )}
                     </CardTitle>
                     <CardDescription>
-                      Category: {product.categories?.name || 'Uncategorized'} | 
-                      Price: ₦{(product.price / 100).toLocaleString()} | 
+                      Category: {product.categories?.name || 'Uncategorized'} |
+                      Price: ₦{(product.price / 100).toLocaleString()} |
                       Stock: {product.stock || 0}
                     </CardDescription>
                   </div>

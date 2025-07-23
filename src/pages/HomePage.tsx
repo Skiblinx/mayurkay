@@ -6,7 +6,7 @@ import CategoryCard from '../components/CategoryCard';
 import CategoryCardSkeleton from '../components/CategoryCardSkeleton';
 import { Button } from '../components/ui/button';
 import { ShoppingBag } from 'lucide-react';
-import { useProducts, useCategories, useSiteContent } from '@/hooks/useSupabaseData';
+import { useProducts, useCategories, useSiteContent } from '@/hooks/useApiData';
 
 const HomePage = () => {
   const { data: products = [], isLoading: productsLoading } = useProducts();
@@ -91,7 +91,7 @@ const HomePage = () => {
                     price: product.price / 100, // Convert from cents
                     image: product.images?.[0] || '/placeholder.svg?height=400&width=400',
                     description: product.description || '',
-                    category: product.categories?.slug || 'general',
+                    category: product.category?.slug || 'general',
                     rating: product.rating || 0,
                   }} 
                 />

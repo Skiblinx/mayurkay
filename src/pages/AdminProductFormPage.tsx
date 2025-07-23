@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCategories, useCreateProduct, useUpdateProduct, useAdminProducts } from '@/hooks/useSupabaseData';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useCategories, useCreateProduct, useUpdateProduct, useAdminProducts } from '@/hooks/useApiData';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { uploadFile } from '@/services/apiService';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,18 +19,29 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, AlertCircle } from 'lucide-react';
+
+interface FormErrors {
+  name?: string;
+  price?: string;
+  description?: string;
+  stock?: string;
+  rating?: string;
+  images?: string;
+}
 
 const AdminProductFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
-  
+
   const { data: categories } = useCategories();
   const { data: products } = useAdminProducts();
   const { mutate: createProduct, isPending: isCreating } = useCreateProduct();
   const { mutate: updateProduct, isPending: isUpdating } = useUpdateProduct();
-  const { isAdmin, loading } = useAdminAuth();
+  const { isAdmin, loading, user } = useAdminAuth();
+
+  console.log('Admin auth status:', { isAdmin, loading, userEmail: user?.email });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -43,6 +55,9 @@ const AdminProductFormPage = () => {
   });
 
   const [imageInput, setImageInput] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isEditing && products && id) {
@@ -62,11 +77,103 @@ const AdminProductFormPage = () => {
     }
   }, [isEditing, products, id]);
 
+  // Handle file upload
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image file size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Upload file to backend
+      const uploadResponse = await uploadFile(file, 'products');
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, uploadResponse.url]
+      }));
+
+      toast.success('Image uploaded successfully');
+
+      // Clear image error if it exists
+      if (errors.images) {
+        setErrors(prev => ({ ...prev, images: undefined }));
+      }
+    } catch (error) {
+      toast.error('Failed to upload image');
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Validate form fields
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Required fields
+    if (!formData.name.trim()) {
+      newErrors.name = 'Product name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Product name must be at least 2 characters';
+    }
+
+    if (!formData.price) {
+      newErrors.price = 'Price is required';
+    } else {
+      const price = parseFloat(formData.price);
+      if (isNaN(price) || price <= 0) {
+        newErrors.price = 'Price must be a positive number';
+      }
+    }
+
+    // Optional fields with validation
+    if (formData.description.trim() && formData.description.trim().length < 10) {
+      newErrors.description = 'Description must be at least 10 characters if provided';
+    }
+
+    if (formData.stock) {
+      const stock = parseInt(formData.stock);
+      if (isNaN(stock) || stock < 0) {
+        newErrors.stock = 'Stock must be a non-negative number';
+      }
+    }
+
+    if (formData.rating) {
+      const rating = parseFloat(formData.rating);
+      if (isNaN(rating) || rating < 0 || rating > 5) {
+        newErrors.rating = 'Rating must be between 0 and 5';
+      }
+    }
+
+    // Image validation
+    // if (formData.images.length === 0) {
+    //   newErrors.images = 'At least one product image is required';
+    // }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.price) {
-      toast.error('Please fill in all required fields');
+    console.log('Form submission started');
+    console.log('Form data:', formData);
+
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      toast.error('Please fix the errors in the form');
       return;
     }
 
@@ -78,29 +185,37 @@ const AdminProductFormPage = () => {
       stock: formData.stock ? parseInt(formData.stock) : undefined,
       rating: formData.rating ? parseFloat(formData.rating) : undefined,
       is_active: formData.is_active,
-      images: formData.images.length > 0 ? formData.images : undefined
+      images: formData.images // Always include images array, even if empty
     };
 
+    console.log('Product data to send:', productData);
+
     if (isEditing && id) {
+      console.log('Updating existing product');
       updateProduct(
         { id, data: productData },
         {
           onSuccess: () => {
+            console.log('Product updated successfully');
             toast.success('Product updated successfully');
             navigate('/admin/products');
           },
           onError: (error) => {
+            console.error('Update product error:', error);
             toast.error(`Failed to update product: ${error.message}`);
           },
         }
       );
     } else {
+      console.log('Creating new product');
       createProduct(productData, {
         onSuccess: () => {
+          console.log('Product created successfully');
           toast.success('Product created successfully');
           navigate('/admin/products');
         },
         onError: (error) => {
+          console.error('Create product error:', error);
           toast.error(`Failed to create product: ${error.message}`);
         },
       });
@@ -108,12 +223,35 @@ const AdminProductFormPage = () => {
   };
 
   const addImage = () => {
-    if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput.trim()]
-      }));
-      setImageInput('');
+    const trimmedUrl = imageInput.trim();
+
+    if (!trimmedUrl) {
+      toast.error('Please enter an image URL');
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(trimmedUrl);
+    } catch {
+      toast.error('Please enter a valid image URL');
+      return;
+    }
+
+    if (formData.images.includes(trimmedUrl)) {
+      toast.error('This image URL is already added');
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, trimmedUrl]
+    }));
+    setImageInput('');
+
+    // Clear image error if it exists
+    if (errors.images) {
+      setErrors(prev => ({ ...prev, images: undefined }));
     }
   };
 
@@ -122,6 +260,17 @@ const AdminProductFormPage = () => {
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addImage();
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   if (loading) {
@@ -171,7 +320,7 @@ const AdminProductFormPage = () => {
           <CardHeader>
             <CardTitle>Product Information</CardTitle>
             <CardDescription>
-              Fill in the details for your product
+              Fill in the details for your product. Fields marked with * are required.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -182,10 +331,19 @@ const AdminProductFormPage = () => {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, name: e.target.value }));
+                      if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+                    }}
                     placeholder="Enter product name"
-                    required
+                    className={errors.name ? 'border-red-500' : ''}
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="price">Price (₦) *</Label>
@@ -195,10 +353,19 @@ const AdminProductFormPage = () => {
                     step="0.01"
                     min="0"
                     value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, price: e.target.value }));
+                      if (errors.price) setErrors(prev => ({ ...prev, price: undefined }));
+                    }}
                     placeholder="0.00"
-                    required
+                    className={errors.price ? 'border-red-500' : ''}
                   />
+                  {errors.price && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.price}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -207,10 +374,20 @@ const AdminProductFormPage = () => {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Enter product description"
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, description: e.target.value }));
+                    if (errors.description) setErrors(prev => ({ ...prev, description: undefined }));
+                  }}
+                  placeholder="Enter product description (optional, but recommended)"
                   rows={4}
+                  className={errors.description ? 'border-red-500' : ''}
                 />
+                {errors.description && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.description}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -239,9 +416,19 @@ const AdminProductFormPage = () => {
                     type="number"
                     min="0"
                     value={formData.stock}
-                    onChange={(e) => setFormData(prev => ({ ...prev, stock: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, stock: e.target.value }));
+                      if (errors.stock) setErrors(prev => ({ ...prev, stock: undefined }));
+                    }}
                     placeholder="0"
+                    className={errors.stock ? 'border-red-500' : ''}
                   />
+                  {errors.stock && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.stock}
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="rating">Rating (0-5)</Label>
@@ -252,26 +439,87 @@ const AdminProductFormPage = () => {
                     min="0"
                     max="5"
                     value={formData.rating}
-                    onChange={(e) => setFormData(prev => ({ ...prev, rating: e.target.value }))}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, rating: e.target.value }));
+                      if (errors.rating) setErrors(prev => ({ ...prev, rating: undefined }));
+                    }}
                     placeholder="0.0"
+                    className={errors.rating ? 'border-red-500' : ''}
                   />
+                  {errors.rating && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.rating}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-4">
-                <Label>Product Images</Label>
+                <Label>Product Images (Optional for testing)</Label>
+
+                {/* URL Input */}
                 <div className="flex gap-2">
                   <Input
                     value={imageInput}
                     onChange={(e) => setImageInput(e.target.value)}
-                    placeholder="Enter image URL"
+                    onKeyDown={handleKeyPress}
+                    placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
                     className="flex-1"
                   />
                   <Button type="button" onClick={addImage} variant="outline">
                     <Upload className="w-4 h-4 mr-2" />
-                    Add
+                    Add URL
                   </Button>
                 </div>
+
+                {/* File Upload */}
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file);
+                        e.target.value = ''; // Reset input
+                      }
+                    }}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
+                  <div className="flex-1 p-2 border border-dashed border-gray-300 rounded-md text-center text-gray-500">
+                    Click "Choose File" to select an image from your device
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={triggerFileUpload}
+                    disabled={isUploading}
+                    className="min-w-[120px]"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choose File
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {errors.images && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.images}
+                  </p>
+                )}
+
                 {formData.images.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((image, index) => (
@@ -280,6 +528,9 @@ const AdminProductFormPage = () => {
                           src={image}
                           alt={`Product ${index + 1}`}
                           className="w-full h-24 object-cover rounded border"
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0zMCAzMEg3MFY3MEgzMFYzMFoiIGZpbGw9IiNEMUQ1REIiLz4KPHBhdGggZD0iTTM1IDM1SDY1VjY1SDM1VjM1WiIgZmlsbD0iI0M3Q0ZEMiIvPgo8L3N2Zz4K';
+                          }}
                         />
                         <Button
                           type="button"
@@ -294,13 +545,17 @@ const AdminProductFormPage = () => {
                     ))}
                   </div>
                 )}
+
+                <p className="text-sm text-gray-500">
+                  You can add images by entering a URL or uploading files from your device (max 5MB each). Images are optional.
+                </p>
               </div>
 
               <div className="flex items-center space-x-2">
                 <Switch
                   id="is_active"
                   checked={formData.is_active}
-                  onCheckedChange={(checked) => 
+                  onCheckedChange={(checked) =>
                     setFormData(prev => ({ ...prev, is_active: checked }))
                   }
                 />

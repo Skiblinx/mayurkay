@@ -6,7 +6,7 @@ import ProductCardSkeleton from '../components/ProductCardSkeleton';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { useProducts, useCategories, useProductsByCategory } from '@/hooks/useSupabaseData';
+import { useProducts, useCategories, useProductsByCategory } from '@/hooks/useApiData';
 
 const ProductsPage = () => {
   const [searchParams] = useSearchParams();
@@ -85,7 +85,7 @@ const ProductsPage = () => {
                 price: product.price / 100, // Convert from cents
                 image: product.images?.[0] || '/placeholder.svg?height=400&width=400',
                 description: product.description || '',
-                category: product.categories?.slug || 'general',
+                category: product.category?.slug || 'general',
                 rating: product.rating || 0,
               }} 
             />

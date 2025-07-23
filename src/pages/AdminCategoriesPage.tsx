@@ -1,10 +1,11 @@
 
 import { useState } from 'react';
-import { useCategories, useDeleteCategory } from '@/hooks/useSupabaseData';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useCategories, useDeleteCategory } from '@/hooks/useApiData';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,

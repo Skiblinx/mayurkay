@@ -7,7 +7,7 @@ import { useWishlistStore } from '../store/wishlistStore';
 import { Button } from '../components/ui/button';
 import { toast } from '../hooks/use-toast';
 import { Badge } from '../components/ui/badge';
-import { useProduct } from '@/hooks/useSupabaseData';
+import { useProduct } from '@/hooks/useApiData';
 
 const ProductDetailPage = () => {
   const { id } = useParams();

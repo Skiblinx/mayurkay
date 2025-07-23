@@ -84,7 +84,12 @@ const LoginPage = () => {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-gray-600">
+                <Link to="/forgot-password" className="text-primary hover:text-primary/80">
+                  Forgot your password?
+                </Link>
+              </p>
               <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
                 <Link to="/signup" className="text-primary hover:text-primary/80">

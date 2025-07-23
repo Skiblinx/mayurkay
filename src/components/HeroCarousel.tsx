@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
-import { useHeroSlides } from '@/hooks/useSupabaseData';
+import { useHeroSlides } from '@/hooks/useApiData';
 import { Link } from 'react-router-dom';
 
 const HeroCarousel = () => {

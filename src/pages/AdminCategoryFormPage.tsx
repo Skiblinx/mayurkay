@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useCategories, useCreateCategory, useUpdateCategory } from '@/hooks/useSupabaseData';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useCategories, useCreateCategory, useUpdateCategory } from '@/hooks/useApiData';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminLayout from '@/components/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ const AdminCategoryFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
-  
+
   const { data: categories } = useCategories();
   const { mutate: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutate: updateCategory, isPending: isUpdating } = useUpdateCategory();

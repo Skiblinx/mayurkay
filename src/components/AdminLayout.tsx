@@ -1,16 +1,16 @@
 
 import { ReactNode } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Package, 
-  Tags, 
-  FileText, 
-  Image, 
-  Users, 
-  ShoppingCart, 
+import {
+  Package,
+  Tags,
+  FileText,
+  Image,
+  Users,
+  ShoppingCart,
   LogOut,
   Home,
   Settings
