@@ -14,7 +14,7 @@ const ProductDetailPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCartStore();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore();
-  
+
   const { data: product, isLoading, error } = useProduct(id || '');
   const [isWishlisted, setIsWishlisted] = useState(product ? isInWishlist(product.id) : false);
 
@@ -43,10 +43,10 @@ const ProductDetailPage = () => {
   const productForCart = {
     id: product.id,
     name: product.name,
-    price: product.price / 100, // Convert from cents
+    price: product.price, // Price in Naira
     image: product.images?.[0] || '/placeholder.svg?height=400&width=400',
     description: product.description || '',
-    category: product.categories?.slug || 'general',
+    category: product.category?.name || 'general',
     rating: product.rating || 0,
   };
 
@@ -126,16 +126,15 @@ const ProductDetailPage = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
             <Badge variant="outline" className="text-xs font-normal capitalize mb-4">
-              {product.categories?.name || 'General'}
+              {product.category?.name || 'General'}
             </Badge>
             <div className="flex items-center mb-4">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <span
                     key={i}
-                    className={`text-lg ${
-                      i < Math.floor(product.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
-                    }`}
+                    className={`text-lg ${i < Math.floor(product.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
+                      }`}
                   >
                     ★
                   </span>
@@ -143,7 +142,7 @@ const ProductDetailPage = () => {
                 <span className="text-gray-600 ml-2">({product.rating || 0}) Reviews</span>
               </div>
             </div>
-            <p className="text-4xl font-bold text-primary mb-6">₦{(product.price / 100).toLocaleString()}</p>
+            <p className="text-4xl font-bold text-primary mb-6">₦{product.price.toLocaleString()}</p>
           </div>
 
           {product.description && (
@@ -161,18 +160,18 @@ const ProductDetailPage = () => {
               <ShoppingCart className="w-5 h-5" />
               <span>Add to Cart</span>
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={handleWishlistToggle}
               className="flex items-center space-x-2"
             >
-              <Heart 
-                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`} 
+              <Heart
+                className={`w-5 h-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''}`}
               />
               <span>{isWishlisted ? 'Wishlisted' : 'Add to Wishlist'}</span>
             </Button>
-            
+
             <Button
               variant="ghost"
               className="flex items-center space-x-2"
@@ -187,7 +186,7 @@ const ProductDetailPage = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Category:</span>
-                  <span className="capitalize">{product.categories?.name || 'General'}</span>
+                  <span className="capitalize">{product.category?.name || 'General'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Stock:</span>

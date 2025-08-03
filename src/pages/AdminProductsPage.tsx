@@ -98,7 +98,7 @@ const AdminProductsPage = () => {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       {product.name}
-                      {product.is_active ? (
+                      {product.isActive ? (
                         <Badge variant="default" className="bg-green-100 text-green-800">
                           <Eye className="w-3 h-3 mr-1" />
                           Active
@@ -111,8 +111,8 @@ const AdminProductsPage = () => {
                       )}
                     </CardTitle>
                     <CardDescription>
-                      Category: {product.categories?.name || 'Uncategorized'} |
-                      Price: ₦{(product.price / 100).toLocaleString()} |
+                      Category: {product.category?.name || 'Uncategorized'} |
+                      Price: ₦{product.price.toLocaleString()} |
                       Stock: {product.stock || 0}
                     </CardDescription>
                   </div>

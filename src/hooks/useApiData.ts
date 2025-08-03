@@ -26,6 +26,12 @@ import {
   getOrderById,
   updateOrderStatus,
 } from '@/services/apiService';
+import type { 
+  CreateCategoryData, 
+  UpdateProductData, 
+  UpdateHeroSlideData, 
+  UpdateSiteContentData 
+} from '@/types/api';
 
 // Public hooks (existing)
 export const useProducts = () => {
@@ -95,7 +101,7 @@ export const useCreateProduct = () => {
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateProduct(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateProductData | FormData }) => updateProduct(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -127,7 +133,7 @@ export const useCreateCategory = () => {
 export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateCategory(id, data),
+    mutationFn: ({ id, data }: { id: string; data: CreateCategoryData | FormData }) => updateCategory(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
     },
@@ -165,7 +171,7 @@ export const useCreateHeroSlide = () => {
 export const useUpdateHeroSlide = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateHeroSlide(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateHeroSlideData }) => updateHeroSlide(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-hero-slides'] });
       queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
@@ -205,7 +211,7 @@ export const useCreateSiteContent = () => {
 export const useUpdateSiteContent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateSiteContent(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateSiteContentData }) => updateSiteContent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-site-content'] });
       queryClient.invalidateQueries({ queryKey: ['site-content'] });

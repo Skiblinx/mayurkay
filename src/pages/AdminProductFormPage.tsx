@@ -57,6 +57,8 @@ const AdminProductFormPage = () => {
   const [imageInput, setImageInput] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,55 +68,60 @@ const AdminProductFormPage = () => {
         setFormData({
           name: product.name,
           description: product.description || '',
-          price: (product.price / 100).toString(),
-          category_id: product.category_id || '',
+          price: product.price.toString(),
+          category_id: product.categoryId || '',
           stock: product.stock?.toString() || '',
           rating: product.rating?.toString() || '',
-          is_active: product.is_active ?? true,
+          is_active: product.isActive ?? true,
           images: product.images || []
         });
       }
     }
   }, [isEditing, products, id]);
 
-  // Handle file upload
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
+  // Cleanup preview URLs on unmount
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
-      return;
-    }
+  // Handle file selection for preview
+  const handleFileSelect = (files: FileList) => {
+    const validFiles: File[] = [];
+    const newPreviewUrls: string[] = [];
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image file size must be less than 5MB');
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      // Upload file to backend
-      const uploadResponse = await uploadFile(file, 'products');
-      
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, uploadResponse.url]
-      }));
-
-      toast.success('Image uploaded successfully');
-
-      // Clear image error if it exists
-      if (errors.images) {
-        setErrors(prev => ({ ...prev, images: undefined }));
+    Array.from(files).forEach(file => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not a valid image file`);
+        return;
       }
-    } catch (error) {
-      toast.error('Failed to upload image');
-      console.error('Upload error:', error);
-    } finally {
-      setIsUploading(false);
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 5MB)`);
+        return;
+      }
+
+      validFiles.push(file);
+      newPreviewUrls.push(URL.createObjectURL(file));
+    });
+
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
     }
+  };
+
+  // Remove selected file
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => {
+      // Revoke the URL to free memory
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   // Validate form fields
@@ -170,6 +177,7 @@ const AdminProductFormPage = () => {
 
     console.log('Form submission started');
     console.log('Form data:', formData);
+    console.log('Selected files:', selectedFiles);
 
     if (!validateForm()) {
       console.log('Form validation failed');
@@ -177,23 +185,40 @@ const AdminProductFormPage = () => {
       return;
     }
 
-    const productData = {
-      name: formData.name.trim(),
-      description: formData.description.trim() || undefined,
-      price: parseFloat(formData.price),
-      category_id: formData.category_id || undefined,
-      stock: formData.stock ? parseInt(formData.stock) : undefined,
-      rating: formData.rating ? parseFloat(formData.rating) : undefined,
-      is_active: formData.is_active,
-      images: formData.images // Always include images array, even if empty
-    };
+    // Create FormData for multipart request
+    const formDataToSend = new FormData();
 
-    console.log('Product data to send:', productData);
+    // Add form fields
+    formDataToSend.append('name', formData.name.trim());
+    if (formData.description.trim()) {
+      formDataToSend.append('description', formData.description.trim());
+    }
+    formDataToSend.append('price', formData.price);
+    formDataToSend.append('category_id', formData.category_id);
+    if (formData.stock) {
+      formDataToSend.append('stock', formData.stock);
+    }
+    if (formData.rating) {
+      formDataToSend.append('rating', formData.rating);
+    }
+    formDataToSend.append('is_active', formData.is_active.toString());
+
+    // Add existing images (for updates)
+    formData.images.forEach((imageUrl, index) => {
+      formDataToSend.append(`existing_images[${index}]`, imageUrl);
+    });
+
+    // Add new image files
+    selectedFiles.forEach((file) => {
+      formDataToSend.append(`images`, file);
+    });
+
+    console.log('FormData prepared for submission');
 
     if (isEditing && id) {
       console.log('Updating existing product');
       updateProduct(
-        { id, data: productData },
+        { id, data: formDataToSend },
         {
           onSuccess: () => {
             console.log('Product updated successfully');
@@ -208,7 +233,7 @@ const AdminProductFormPage = () => {
       );
     } else {
       console.log('Creating new product');
-      createProduct(productData, {
+      createProduct(formDataToSend, {
         onSuccess: () => {
           console.log('Product created successfully');
           toast.success('Product created successfully');
@@ -480,12 +505,13 @@ const AdminProductFormPage = () => {
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleFileUpload(file);
+                      const files = e.target.files;
+                      if (files && files.length > 0) {
+                        handleFileSelect(files);
                         e.target.value = ''; // Reset input
                       }
                     }}
+                    multiple
                     className="hidden"
                     disabled={isUploading}
                   />
@@ -512,6 +538,40 @@ const AdminProductFormPage = () => {
                     )}
                   </Button>
                 </div>
+
+                {/* Selected Files Preview */}
+                {selectedFiles.length > 0 && (
+                  <div className="space-y-4 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                    <Label>Selected Images ({selectedFiles.length})</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={previewUrls[index]}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-24 object-cover rounded border"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 w-6 h-6 p-0"
+                            onClick={() => removeSelectedFile(index)}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                          <p className="text-xs mt-1 truncate">{file.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-blue-600">
+                      These images will be uploaded when you submit the form.
+                    </p>
+                  </div>
+                )}
 
                 {errors.images && (
                   <p className="text-sm text-red-600 flex items-center gap-1">
